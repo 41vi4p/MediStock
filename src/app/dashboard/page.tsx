@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
@@ -15,7 +17,11 @@ import {
   Calendar, 
   TrendingUp,
   Package,
-  Clock
+  Clock,
+  X,
+  MapPin,
+  Tag,
+  ShoppingCart
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -24,6 +30,8 @@ export default function Dashboard() {
   const router = useRouter();
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     if (!user?.familyId) {
@@ -58,34 +66,18 @@ export default function Dashboard() {
   const expiringSoonMedicines = medicines.filter(med => isExpiringSoon(med.expiryDate));
   const totalQuantity = medicines.reduce((sum, med) => sum + med.quantity, 0);
 
-  const stats = [
-    {
-      title: 'Total Medicines',
-      value: medicines.length,
-      icon: Package,
-      color: 'bg-blue-500',
-    },
-    {
-      title: 'Total Quantity',
-      value: totalQuantity,
-      icon: TrendingUp,
-      color: 'bg-green-500',
-    },
-    {
-      title: 'Expiring Soon',
-      value: expiringSoonMedicines.length,
-      icon: Clock,
-      color: 'bg-yellow-500',
-    },
-    {
-      title: 'Expired',
-      value: expiredMedicines.length,
-      icon: AlertTriangle,
-      color: 'bg-red-500',
-    },
-  ];
 
   const recentMedicines = medicines.slice(0, 5);
+
+  const openMedicineModal = (medicine: Medicine) => {
+    setSelectedMedicine(medicine);
+    setShowModal(true);
+  };
+
+  const closeMedicineModal = () => {
+    setShowModal(false);
+    setSelectedMedicine(null);
+  };
 
   if (loading) {
     return (
@@ -110,65 +102,112 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={stat.title}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
-              >
-                <div className="flex items-center">
-                  <div className={`${stat.color} p-3 rounded-lg`}>
-                    <Icon className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      {stat.title}
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {stat.value}
-                    </p>
-                  </div>
+        {/* Stats Grid - Two Rows */}
+        <div className="space-y-6 mb-8">
+          {/* First Row - Total Medicines and Total Quantity */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-6 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center">
+                <div className="bg-blue-500 p-2 sm:p-3 rounded-lg">
+                  <Package className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+                </div>
+                <div className="ml-2 sm:ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Total Medicines
+                  </p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                    {medicines.length}
+                  </p>
                 </div>
               </div>
-            );
-          })}
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-6 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center">
+                <div className="bg-green-500 p-2 sm:p-3 rounded-lg">
+                  <TrendingUp className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+                </div>
+                <div className="ml-2 sm:ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Total Quantity
+                  </p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                    {totalQuantity}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Second Row - Expiring Soon and Expired */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-6">
+            <Link
+              href="/medicines/expired"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-6 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center">
+                <div className="bg-yellow-500 p-2 sm:p-3 rounded-lg">
+                  <Clock className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+                </div>
+                <div className="ml-2 sm:ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Expiring Soon
+                  </p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                    {expiringSoonMedicines.length}
+                  </p>
+                  <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1 hidden sm:block">
+                    Click to view details
+                  </p>
+                </div>
+              </div>
+            </Link>
+            
+            <Link
+              href="/medicines/expired"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-6 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center">
+                <div className="bg-red-500 p-2 sm:p-3 rounded-lg">
+                  <AlertTriangle className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+                </div>
+                <div className="ml-2 sm:ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Expired
+                  </p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                    {expiredMedicines.length}
+                  </p>
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1 hidden sm:block">
+                    Click to view details
+                  </p>
+                </div>
+              </div>
+            </Link>
+          </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="mb-8 space-y-4">
           <Link
             href="/medicines/add"
-            className="bg-blue-600 hover:bg-blue-700 text-white p-6 rounded-lg shadow-md transition-colors flex items-center space-x-4"
+            className="bg-blue-600 hover:bg-blue-700 text-white p-4 sm:p-6 rounded-lg shadow-md transition-colors flex items-center space-x-3 sm:space-x-4 w-full sm:max-w-md"
           >
-            <Plus className="h-8 w-8" />
-            <div>
-              <h3 className="text-lg font-semibold">Add Medicine</h3>
-              <p className="text-blue-100">Add new medicine to inventory</p>
-            </div>
-          </Link>
-          
-          <Link
-            href="/medicines/expired"
-            className="bg-red-600 hover:bg-red-700 text-white p-6 rounded-lg shadow-md transition-colors flex items-center space-x-4"
-          >
-            <AlertTriangle className="h-8 w-8" />
-            <div>
-              <h3 className="text-lg font-semibold">View Expired</h3>
-              <p className="text-red-100">Check expired medicines</p>
+            <Plus className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="text-base sm:text-lg font-semibold">Add Medicine</h3>
+              <p className="text-blue-100 text-sm sm:text-base">Add new medicine to inventory</p>
             </div>
           </Link>
           
           <Link
             href="/medicines/search"
-            className="bg-green-600 hover:bg-green-700 text-white p-6 rounded-lg shadow-md transition-colors flex items-center space-x-4"
+            className="bg-green-600 hover:bg-green-700 text-white p-4 sm:p-6 rounded-lg shadow-md transition-colors flex items-center space-x-3 sm:space-x-4 w-full sm:max-w-md"
           >
-            <Pill className="h-8 w-8" />
-            <div>
-              <h3 className="text-lg font-semibold">Search Medicines</h3>
-              <p className="text-green-100">Find specific medicines</p>
+            <Pill className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="text-base sm:text-lg font-semibold">View All Medicines</h3>
+              <p className="text-green-100 text-sm sm:text-base">Browse and search your medicine inventory</p>
             </div>
           </Link>
         </div>
@@ -210,7 +249,10 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3">
-                          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                          <h3 
+                            className="text-lg font-medium text-gray-900 dark:text-white cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            onClick={() => openMedicineModal(medicine)}
+                          >
                             {medicine.name}
                           </h3>
                           {expired && (
@@ -248,6 +290,135 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+
+        {/* Medicine Details Modal */}
+        {showModal && selectedMedicine && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+            onClick={closeMedicineModal}
+          >
+            <div 
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Medicine Details
+                </h2>
+                <button
+                  onClick={closeMedicineModal}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6 space-y-6">
+                {/* Medicine Name and Status */}
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {selectedMedicine.name}
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {isExpired(selectedMedicine.expiryDate) && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                        <AlertTriangle className="h-4 w-4 mr-1" />
+                        Expired
+                      </span>
+                    )}
+                    {!isExpired(selectedMedicine.expiryDate) && isExpiringSoon(selectedMedicine.expiryDate) && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                        <Clock className="h-4 w-4 mr-1" />
+                        Expiring Soon
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Description */}
+                {selectedMedicine.description && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</h4>
+                    <p className="text-gray-600 dark:text-gray-400">{selectedMedicine.description}</p>
+                  </div>
+                )}
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Quantity */}
+                  <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <Package className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {selectedMedicine.quantity} {selectedMedicine.unit}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Category */}
+                  <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <Tag className="h-5 w-5 text-green-600 dark:text-green-400 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Category</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">{selectedMedicine.category}</p>
+                    </div>
+                  </div>
+
+                  {/* Location */}
+                  <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <MapPin className="h-5 w-5 text-purple-600 dark:text-purple-400 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Storage Location</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">{selectedMedicine.location}</p>
+                    </div>
+                  </div>
+
+                  {/* Expiry Date */}
+                  <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <Calendar className="h-5 w-5 text-red-600 dark:text-red-400 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Expiry Date</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {formatDate(selectedMedicine.expiryDate)}
+                      </p>
+                      {!isExpired(selectedMedicine.expiryDate) && (
+                        <p className={`text-sm ${getDaysUntilExpiry(selectedMedicine.expiryDate) <= 30 ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                          {getDaysUntilExpiry(selectedMedicine.expiryDate) > 0 
+                            ? `${getDaysUntilExpiry(selectedMedicine.expiryDate)} days remaining` 
+                            : 'Expires today'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Purchase Date */}
+                  <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <ShoppingCart className="h-5 w-5 text-orange-600 dark:text-orange-400 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Purchase Date</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {formatDate(selectedMedicine.purchaseDate)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex justify-end p-6 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={closeMedicineModal}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

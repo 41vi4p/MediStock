@@ -49,6 +49,7 @@ export interface User {
   displayName: string;
   photoURL?: string;
   familyId?: string;
+  theme?: 'light' | 'dark';
   createdAt: Date;
 }
 
