@@ -28,7 +28,7 @@ export class ActivityLogger {
   static async log(entry: LogEntry): Promise<void> {
     try {
       // Remove undefined values from the entry
-      const cleanEntry = {
+      const cleanEntry: Record<string, unknown> = {
         type: entry.type,
         userId: entry.userId,
         userName: entry.userName,

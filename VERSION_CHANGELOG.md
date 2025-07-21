@@ -5,6 +5,95 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.5.0] - 2025-01-21
+
+### 🎉 Major Family System Overhaul
+
+This release completely transforms the family invitation system and introduces powerful new family management features with enhanced mobile experience.
+
+### ✨ Features Added
+
+#### 🔐 **Family Code System**
+- **6-character family codes** replace email invitations
+- **Unique code generation** with automatic validation
+- **Copy to clipboard** functionality for easy sharing
+- **Admin code regeneration** capability
+- **Case-insensitive code entry** (auto-uppercase)
+
+#### 🔒 **Family Password Protection**
+- **Optional password protection** for families
+- **Bcrypt secure hashing** (10 rounds) for passwords
+- **Change/remove passwords** by admins
+- **Password strength validation** (minimum 6 characters)
+- **Proper database integration** with secure storage
+
+#### 📱 **Enhanced Mobile Experience**
+- **Responsive button layouts** - buttons stack properly on mobile
+- **Mobile-optimized forms** with full-width inputs
+- **Touch-friendly interfaces** with proper spacing
+- **Shortened button labels** for mobile (Code, Pass, etc.)
+- **Improved dropdown menu** with email overflow handling
+- **Better navigation flow** on small screens
+
+#### 🎨 **UI/UX Improvements**
+- **Inline join family form** on family management page
+- **Clear instructions** for family code sharing
+- **Password protection indicators** in UI
+- **Form state management** with proper error handling
+- **Conditional content display** - no empty sections
+- **Professional card layouts** with consistent spacing
+
+#### 🛠️ **System Enhancements**
+- **Removed email dependencies** - no email service required
+- **Real-time family updates** with proper sync
+- **Activity logging** for family changes
+- **Enhanced error handling** with user-friendly messages
+- **Clean form resets** and state management
+
+### 🔄 **Breaking Changes**
+
+#### **Family Invitation System**
+- ❌ **Email invitations removed** - no longer supported
+- ❌ **FamilyInvitation interface** removed from types
+- ✅ **Family codes replace email system** - simpler and more reliable
+- ✅ **Existing families** work without migration needed
+
+### 🛠️ **Technical Improvements**
+
+#### **Database Schema Updates**
+- Added `familyCode: string` field to Family interface
+- Added `passwordHash?: string` field for optional protection
+- Removed `invitations` array from Family interface
+- Enhanced activity logging for family operations
+
+#### **Security Enhancements**
+- **Bcrypt password hashing** with salt rounds
+- **Unique code generation** with collision prevention
+- **Admin-only operations** with proper role validation
+- **Form validation** on both client and server side
+
+#### **Mobile Optimization**
+- **Responsive grid layouts** with proper breakpoints
+- **Touch target optimization** for mobile interaction
+- **Text truncation** for long emails and names
+- **Flexible button arrangements** that adapt to screen size
+
+### 🐛 **Bug Fixes**
+- Fixed dropdown menu email overflow on long addresses
+- Fixed mobile button stacking issues
+- Fixed form state persistence across navigation
+- Fixed empty section display for users without families
+- Fixed TypeScript type errors in activity logging
+
+### 🎯 **User Experience**
+- **Simplified onboarding** - no email setup required
+- **Faster family joining** - just enter code and optional password
+- **Better mobile navigation** - everything fits properly
+- **Clear visual feedback** - loading states and error messages
+- **Intuitive workflows** - logical button placement and flow
+
+---
+
 ## [v1.0.0] - 2024-01-21
 
 ### 🎉 Initial Release

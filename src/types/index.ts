@@ -20,7 +20,8 @@ export interface Family {
   description?: string;
   createdBy: string;
   members: FamilyMember[];
-  invitations?: FamilyInvitation[];
+  familyCode: string;
+  passwordHash?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,14 +35,6 @@ export interface FamilyMember {
   joinedAt: Date;
 }
 
-export interface FamilyInvitation {
-  id: string;
-  email: string;
-  invitedBy: string;
-  status: 'pending' | 'accepted' | 'declined';
-  createdAt: Date;
-  expiresAt: Date;
-}
 
 export interface User {
   id: string;

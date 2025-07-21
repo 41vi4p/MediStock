@@ -3,26 +3,30 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { 
   doc, 
-  getDoc, 
   updateDoc, 
   collection, 
   onSnapshot,
   serverTimestamp,
-  addDoc
+  addDoc,
+  query,
+  where,
+  getDocs
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from './AuthContext';
-import { Family, FamilyMember, FamilyInvitation } from '@/types';
+import { Family, FamilyMember } from '@/types';
+import bcrypt from 'bcryptjs';
 import ActivityLogger from '@/lib/activityLogger';
 
 interface FamilyContextType {
   family: Family | null;
   loading: boolean;
-  createFamily: (name: string, description?: string) => Promise<void>;
-  inviteMember: (email: string) => Promise<void>;
+  createFamily: (name: string, description?: string, password?: string) => Promise<void>;
   removeMember: (userId: string) => Promise<void>;
   leaveFamily: () => Promise<void>;
-  joinFamily: (familyId: string) => Promise<void>;
+  joinFamilyWithCode: (familyCode: string, password?: string) => Promise<void>;
+  regenerateFamilyCode: () => Promise<void>;
+  changeFamilyPassword: (newPassword?: string) => Promise<void>;
 }
 
 const FamilyContext = createContext<FamilyContextType | undefined>(undefined);
@@ -53,11 +57,6 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
               ...member,
               joinedAt: member.joinedAt?.toDate() || new Date(),
             })) || [],
-            invitations: familyData.invitations?.map((invitation: FamilyInvitation & { createdAt: { toDate(): Date }, expiresAt: { toDate(): Date } }) => ({
-              ...invitation,
-              createdAt: invitation.createdAt?.toDate() || new Date(),
-              expiresAt: invitation.expiresAt?.toDate() || new Date(),
-            })) || [],
           } as Family);
         } else {
           setFamily(null);
@@ -73,14 +72,42 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     return unsubscribe;
   }, [user?.familyId]);
 
-  const createFamily = async (name: string, description?: string) => {
+  const generateFamilyCode = (): string => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  const createFamily = async (name: string, description?: string, password?: string) => {
     if (!user) throw new Error('User not authenticated');
 
     const now = new Date();
+    let familyCode = generateFamilyCode();
+    
+    // Ensure family code is unique
+    const familiesRef = collection(db, 'families');
+    let codeExists = true;
+    while (codeExists) {
+      const q = query(familiesRef, where('familyCode', '==', familyCode));
+      const querySnapshot = await getDocs(q);
+      if (querySnapshot.empty) {
+        codeExists = false;
+      } else {
+        familyCode = generateFamilyCode();
+      }
+    }
+
+    const passwordHash = password ? await bcrypt.hash(password, 10) : undefined;
+
     const familyData = {
       name,
       description,
       createdBy: user.id,
+      familyCode,
+      passwordHash,
       members: [{
         userId: user.id,
         email: user.email,
@@ -89,7 +116,6 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
         role: 'admin' as const,
         joinedAt: now,
       }],
-      invitations: [],
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
@@ -111,48 +137,6 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const inviteMember = async (email: string) => {
-    if (!family || !user) throw new Error('Family or user not found');
-
-    // Check if user is already a member
-    const existingMember = family.members.find(member => member.email === email);
-    if (existingMember) {
-      throw new Error('User is already a family member');
-    }
-
-    // Check if there's already a pending invitation
-    const existingInvitation = family.invitations?.find(
-      inv => inv.email === email && inv.status === 'pending'
-    );
-    if (existingInvitation) {
-      throw new Error('Invitation already sent to this email');
-    }
-
-    const now = new Date();
-    const invitation = {
-      id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      email,
-      invitedBy: user.id,
-      status: 'pending' as const,
-      createdAt: now,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-    };
-
-    const updatedInvitations = [...(family.invitations || []), invitation];
-
-    await updateDoc(doc(db, 'families', family.id), {
-      invitations: updatedInvitations,
-      updatedAt: serverTimestamp(),
-    });
-
-    // Log member invitation
-    await ActivityLogger.logMemberInvited(
-      user.id,
-      user.displayName,
-      family.id,
-      email
-    );
-  };
 
   const removeMember = async (userId: string) => {
     if (!family || !user) throw new Error('Family or user not found');
@@ -215,28 +199,36 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const joinFamily = async (familyId: string) => {
+  const joinFamilyWithCode = async (familyCode: string, password?: string) => {
     if (!user) throw new Error('User not authenticated');
 
-    const familyDoc = await getDoc(doc(db, 'families', familyId));
-    if (!familyDoc.exists()) {
-      throw new Error('Family not found');
+    // Find family by code
+    const familiesRef = collection(db, 'families');
+    const q = query(familiesRef, where('familyCode', '==', familyCode.toUpperCase()));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      throw new Error('Family not found with this code');
     }
 
+    const familyDoc = querySnapshot.docs[0];
     const familyData = familyDoc.data() as Family;
     
-    // Check if user has a pending invitation
-    const invitation = familyData.invitations?.find(
-      inv => inv.email === user.email && inv.status === 'pending'
-    );
-
-    if (!invitation) {
-      throw new Error('No pending invitation found');
+    // Check if user is already a member
+    const existingMember = familyData.members.find(member => member.userId === user.id);
+    if (existingMember) {
+      throw new Error('You are already a member of this family');
     }
 
-    // Check if invitation has expired
-    if (invitation.expiresAt < new Date()) {
-      throw new Error('Invitation has expired');
+    // Validate password if family has one
+    if (familyData.passwordHash) {
+      if (!password) {
+        throw new Error('This family requires a password');
+      }
+      const isPasswordValid = await bcrypt.compare(password, familyData.passwordHash);
+      if (!isPasswordValid) {
+        throw new Error('Incorrect password');
+      }
     }
 
     const newMember: FamilyMember = {
@@ -249,27 +241,87 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     };
 
     const updatedMembers = [...familyData.members, newMember];
-    const updatedInvitations = familyData.invitations?.map(inv => 
-      inv.email === user.email ? { ...inv, status: 'accepted' as const } : inv
-    ) || [];
 
-    await updateDoc(doc(db, 'families', familyId), {
+    await updateDoc(doc(db, 'families', familyDoc.id), {
       members: updatedMembers,
-      invitations: updatedInvitations,
       updatedAt: serverTimestamp(),
     });
 
     // Update user with familyId
     await updateDoc(doc(db, 'users', user.id), {
-      familyId,
+      familyId: familyDoc.id,
       updatedAt: serverTimestamp(),
     });
 
-    // Log invitation acceptance
-    await ActivityLogger.logInvitationAccepted(
+    // Log member joining
+    await ActivityLogger.logMemberInvited(
       user.id,
       user.displayName,
-      familyId
+      familyDoc.id,
+      user.email
+    );
+  };
+
+  const regenerateFamilyCode = async () => {
+    if (!family || !user) throw new Error('Family or user not found');
+    
+    // Check if current user is admin
+    const currentUserMember = family.members.find(member => member.userId === user.id);
+    if (currentUserMember?.role !== 'admin') {
+      throw new Error('Only admins can regenerate family code');
+    }
+
+    let newFamilyCode = generateFamilyCode();
+    
+    // Ensure new family code is unique
+    const familiesRef = collection(db, 'families');
+    let codeExists = true;
+    while (codeExists) {
+      const q = query(familiesRef, where('familyCode', '==', newFamilyCode));
+      const querySnapshot = await getDocs(q);
+      if (querySnapshot.empty) {
+        codeExists = false;
+      } else {
+        newFamilyCode = generateFamilyCode();
+      }
+    }
+
+    await updateDoc(doc(db, 'families', family.id), {
+      familyCode: newFamilyCode,
+      updatedAt: serverTimestamp(),
+    });
+  };
+
+  const changeFamilyPassword = async (newPassword?: string) => {
+    if (!family || !user) throw new Error('Family or user not found');
+    
+    // Check if current user is admin
+    const currentUserMember = family.members.find(member => member.userId === user.id);
+    if (currentUserMember?.role !== 'admin') {
+      throw new Error('Only admins can change family password');
+    }
+
+    const passwordHash = newPassword ? await bcrypt.hash(newPassword, 10) : undefined;
+
+    if (newPassword) {
+      await updateDoc(doc(db, 'families', family.id), {
+        passwordHash,
+        updatedAt: serverTimestamp(),
+      });
+    } else {
+      // Remove password protection
+      await updateDoc(doc(db, 'families', family.id), {
+        passwordHash: null,
+        updatedAt: serverTimestamp(),
+      });
+    }
+
+    // Log password change
+    await ActivityLogger.logMemberInvited(
+      user.id,
+      user.displayName,
+      family.id,
+      `Family password ${newPassword ? 'updated' : 'removed'}`
     );
   };
 
@@ -277,10 +329,11 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     family,
     loading,
     createFamily,
-    inviteMember,
     removeMember,
     leaveFamily,
-    joinFamily,
+    joinFamilyWithCode,
+    regenerateFamilyCode,
+    changeFamilyPassword,
   };
 
   return <FamilyContext.Provider value={value}>{children}</FamilyContext.Provider>;

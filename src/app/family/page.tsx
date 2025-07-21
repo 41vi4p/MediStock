@@ -10,26 +10,36 @@ import {
   Users, 
   Plus, 
   UserMinus, 
-  Mail, 
   Crown, 
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Copy,
+  Key,
+  RefreshCw,
+  Info,
+  Lock
 } from 'lucide-react';
 import Image from 'next/image';
 import { formatDate } from '@/lib/utils';
 
 export default function FamilyManagement() {
   const { user } = useAuth();
-  const { family, loading, createFamily, inviteMember, removeMember } = useFamily();
+  const { family, loading, createFamily, removeMember, regenerateFamilyCode, joinFamilyWithCode, changeFamilyPassword } = useFamily();
   
-  const [showCreateForm, setShowCreateForm] = useState(!family);
-  const [showInviteForm, setShowInviteForm] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showJoinForm, setShowJoinForm] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState('');
   
   const [familyName, setFamilyName] = useState('');
   const [familyDescription, setFamilyDescription] = useState('');
-  const [inviteEmail, setInviteEmail] = useState('');
+  const [familyPassword, setFamilyPassword] = useState('');
+  const [joinCode, setJoinCode] = useState('');
+  const [joinPassword, setJoinPassword] = useState('');
+  const [showCodeInfo, setShowCodeInfo] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleCreateFamily = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,10 +47,11 @@ export default function FamilyManagement() {
     setError('');
 
     try {
-      await createFamily(familyName, familyDescription);
+      await createFamily(familyName, familyDescription, familyPassword || undefined);
       setShowCreateForm(false);
       setFamilyName('');
       setFamilyDescription('');
+      setFamilyPassword('');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to create family');
     } finally {
@@ -48,19 +59,79 @@ export default function FamilyManagement() {
     }
   };
 
-  const handleInviteMember = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleRegenerateCode = async () => {
+    if (!confirm('Are you sure you want to regenerate the family code? The old code will no longer work.')) {
+      return;
+    }
+
     setFormLoading(true);
     setError('');
 
     try {
-      await inviteMember(inviteEmail);
-      setShowInviteForm(false);
-      setInviteEmail('');
+      await regenerateFamilyCode();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to send invitation');
+      setError(error instanceof Error ? error.message : 'Failed to regenerate code');
     } finally {
       setFormLoading(false);
+    }
+  };
+
+  const handleJoinFamily = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!joinCode.trim()) {
+      setError('Please enter a family code');
+      return;
+    }
+
+    setFormLoading(true);
+    setError('');
+
+    try {
+      await joinFamilyWithCode(joinCode.trim(), joinPassword || undefined);
+      setShowJoinForm(false);
+      setJoinCode('');
+      setJoinPassword('');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to join family');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword && newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (newPassword && newPassword.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
+    setFormLoading(true);
+    setError('');
+
+    try {
+      await changeFamilyPassword(newPassword || undefined);
+      setShowPasswordForm(false);
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to change password');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      // Could add a toast notification here
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
     }
   };
 
@@ -113,7 +184,110 @@ export default function FamilyManagement() {
           </div>
         )}
 
-        {!family || showCreateForm ? (
+        {!family && (
+          <div className="text-center py-8">
+            <div className="flex justify-center space-x-4">
+              {!showCreateForm && !showJoinForm && (
+                <>
+                  <button
+                    onClick={() => setShowCreateForm(true)}
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    Create Family
+                  </button>
+                  <button
+                    onClick={() => setShowJoinForm(true)}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Join Family
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Join Family Form */}
+        {!family && showJoinForm && (
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                <Plus className="h-5 w-5 mr-2" />
+                Join a Family
+              </h2>
+            </div>
+            <form onSubmit={handleJoinFamily} className="p-4 sm:p-6">
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="joinCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Family Code *
+                  </label>
+                  <input
+                    type="text"
+                    id="joinCode"
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                    required
+                    maxLength={6}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-center text-lg font-mono tracking-wider"
+                    placeholder="ABC123"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="joinPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Password (if required)
+                  </label>
+                  <input
+                    type="password"
+                    id="joinPassword"
+                    value={joinPassword}
+                    onChange={(e) => setJoinPassword(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Enter password if family is protected"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowJoinForm(false);
+                    setJoinCode('');
+                    setJoinPassword('');
+                    setError('');
+                  }}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={formLoading}
+                  className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {formLoading ? 'Joining...' : 'Join Family'}
+                </button>
+              </div>
+            </form>
+            
+            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-start space-x-2">
+                <Key className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5" />
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="font-medium">Need a family code?</p>
+                  <p>Ask a family admin to share their 6-character family code with you.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {((!family && showCreateForm) || (family && showCreateForm)) && (
           /* Create Family Form */
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
@@ -122,7 +296,7 @@ export default function FamilyManagement() {
                 Create Your Family
               </h2>
             </div>
-            <form onSubmit={handleCreateFamily} className="p-6">
+            <form onSubmit={handleCreateFamily} className="p-4 sm:p-6">
               <div className="space-y-4">
                 <div>
                   <label htmlFor="familyName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -152,13 +326,36 @@ export default function FamilyManagement() {
                     placeholder="Brief description of your family group"
                   />
                 </div>
+                
+                <div>
+                  <label htmlFor="familyPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Password (Optional)
+                  </label>
+                  <input
+                    type="password"
+                    id="familyPassword"
+                    value={familyPassword}
+                    onChange={(e) => setFamilyPassword(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Leave blank for no password"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Setting a password will require new members to enter it when joining
+                  </p>
+                </div>
               </div>
 
-              <div className="mt-6 flex justify-end space-x-4">
+              <div className="mt-6 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
                 {family && (
                   <button
                     type="button"
-                    onClick={() => setShowCreateForm(false)}
+                    onClick={() => {
+                      setShowCreateForm(false);
+                      setFamilyName('');
+                      setFamilyDescription('');
+                      setFamilyPassword('');
+                      setError('');
+                    }}
                     className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                   >
                     Cancel
@@ -167,7 +364,7 @@ export default function FamilyManagement() {
                 <button
                   type="submit"
                   disabled={formLoading}
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
                 >
                   <Users className="h-4 w-4 mr-2" />
                   {formLoading ? 'Creating...' : 'Create Family'}
@@ -175,68 +372,186 @@ export default function FamilyManagement() {
               </div>
             </form>
           </div>
-        ) : (
-          /* Family Management Interface */
+        )}
+        
+        {/* Family Management Interface - Only show if user has a family */}
+        {family && (
           <div className="space-y-6">
             {/* Family Info */}
             <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
+              <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="space-y-3">
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
                     <Users className="h-5 w-5 mr-2" />
-                    {family.name}
+                    {family?.name}
                   </h2>
-                  {isAdmin && (
+                  <div className="flex flex-wrap gap-2">
                     <button
-                      onClick={() => setShowInviteForm(true)}
-                      className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                      onClick={() => setShowCodeInfo(!showCodeInfo)}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Invite Member
+                      <Info className="h-4 w-4 mr-1 sm:mr-2" />
+                      <span className="hidden sm:inline">Family </span>Code
                     </button>
-                  )}
+                    {isAdmin && (
+                      <>
+                        <button
+                          onClick={() => setShowPasswordForm(true)}
+                          className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                        >
+                          <Lock className="h-4 w-4 mr-1 sm:mr-2" />
+                          <span className="hidden sm:inline">Password</span>
+                          <span className="sm:hidden">Pass</span>
+                        </button>
+                        <button
+                          onClick={handleRegenerateCode}
+                          disabled={formLoading}
+                          className="inline-flex items-center justify-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+                        >
+                          <RefreshCw className="h-4 w-4 mr-1 sm:mr-2" />
+                          <span className="hidden sm:inline">New </span>Code
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="p-6">
-                {family.description && (
+              <div className="p-4 sm:p-6">
+                {family?.description && (
                   <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    {family.description}
+                    {family?.description}
                   </p>
                 )}
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  Created on {formatDate(family.createdAt)} • {family.members.length} member{family.members.length !== 1 ? 's' : ''}
+                  <div className="flex flex-col sm:flex-row sm:items-center">
+                    <span>Created on {formatDate(family?.createdAt || new Date())}</span>
+                    <span className="hidden sm:inline mx-2">•</span>
+                    <span>{family?.members.length || 0} member{(family?.members.length || 0) !== 1 ? 's' : ''}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Invite Form */}
-            {showInviteForm && (
+            {/* Family Code Info */}
+            {showCodeInfo && (
               <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
                 <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                    <Mail className="h-5 w-5 mr-2" />
-                    Invite Family Member
+                    <Key className="h-5 w-5 mr-2" />
+                    Family Code & Instructions
                   </h3>
                 </div>
-                <form onSubmit={handleInviteMember} className="p-6">
-                  <div className="mb-4">
-                    <label htmlFor="inviteEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      id="inviteEmail"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Enter email address"
-                    />
+                <div className="p-4 sm:p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Family Code
+                      </label>
+                      <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                        <code className="bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-md text-lg font-mono font-bold tracking-wider text-center sm:text-left flex-1 sm:flex-none">
+                          {family?.familyCode}
+                        </code>
+                        <button
+                          onClick={() => copyToClipboard(family?.familyCode || '')}
+                          className="inline-flex items-center justify-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 w-full sm:w-auto"
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy Code
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {family?.passwordHash && (
+                      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3">
+                        <div className="flex">
+                          <Key className="h-5 w-5 text-yellow-400 mr-2" />
+                          <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                            This family is password protected. Members will need the password to join.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
+                      <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">How to invite members:</h4>
+                      <ol className="text-sm text-blue-700 dark:text-blue-300 space-y-1 list-decimal list-inside">
+                        <li>Share the family code: <strong>{family?.familyCode}</strong></li>
+                        {family?.passwordHash && <li>Share the family password (if set)</li>}
+                        <li>Ask them to go to Family Management and click Join Family</li>
+                        <li>They enter the code{family?.passwordHash ? ' and password' : ''} to join</li>
+                      </ol>
+                    </div>
                   </div>
-                  <div className="flex justify-end space-x-4">
+                </div>
+              </div>
+            )}
+
+            {/* Change Password Form */}
+            {showPasswordForm && (
+              <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                    <Lock className="h-5 w-5 mr-2" />
+                    Change Family Password
+                  </h3>
+                </div>
+                <form onSubmit={handleChangePassword} className="p-4 sm:p-6">
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
+                      <div className="flex">
+                        <Info className="h-5 w-5 text-blue-400 mr-2" />
+                        <div className="text-sm text-blue-700 dark:text-blue-300">
+                          <p className="font-medium mb-1">Password Options:</p>
+                          <ul className="space-y-1">
+                            <li>• Enter a new password to update protection</li>
+                            <li>• Leave blank to remove password protection</li>
+                            <li>• Minimum 6 characters if setting a password</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        New Password (Optional)
+                      </label>
+                      <input
+                        type="password"
+                        id="newPassword"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                        placeholder="Enter new password or leave blank to remove"
+                      />
+                    </div>
+                    
+                    {newPassword && (
+                      <div>
+                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Confirm New Password *
+                        </label>
+                        <input
+                          type="password"
+                          id="confirmPassword"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                          placeholder="Confirm your new password"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-6 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
                     <button
                       type="button"
-                      onClick={() => setShowInviteForm(false)}
+                      onClick={() => {
+                        setShowPasswordForm(false);
+                        setNewPassword('');
+                        setConfirmPassword('');
+                        setError('');
+                      }}
                       className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
                       Cancel
@@ -244,10 +559,10 @@ export default function FamilyManagement() {
                     <button
                       type="submit"
                       disabled={formLoading}
-                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
                     >
-                      <Mail className="h-4 w-4 mr-2" />
-                      {formLoading ? 'Sending...' : 'Send Invitation'}
+                      <Lock className="h-4 w-4 mr-2" />
+                      {formLoading ? 'Updating...' : (newPassword ? 'Update Password' : 'Remove Password')}
                     </button>
                   </div>
                 </form>
@@ -258,13 +573,14 @@ export default function FamilyManagement() {
             <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
               <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Family Members ({family.members.length})
+                  Family Members ({family?.members.length || 0})
                 </h3>
               </div>
               <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                {family.members.map((member) => (
-                  <div key={member.userId} className="p-6 flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
+                {family?.members.map((member) => (
+                  <div key={member.userId} className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                      <div className="flex items-center space-x-4">
                       {member.photoURL ? (
                         <Image
                           className="h-12 w-12 rounded-full"
@@ -298,57 +614,24 @@ export default function FamilyManagement() {
                           <span>Joined {formatDate(member.joinedAt)}</span>
                         </div>
                       </div>
+                      </div>
+                      
+                      {isAdmin && member.userId !== user?.id && member.userId !== family?.createdBy && (
+                        <button
+                          onClick={() => handleRemoveMember(member.userId, member.displayName)}
+                          disabled={formLoading}
+                          className="inline-flex items-center justify-center px-3 py-2 border border-red-300 dark:border-red-600 rounded-md shadow-sm text-sm font-medium text-red-700 dark:text-red-400 bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+                        >
+                          <UserMinus className="h-4 w-4 mr-2" />
+                          Remove
+                        </button>
+                      )}
                     </div>
-                    
-                    {isAdmin && member.userId !== user?.id && member.userId !== family.createdBy && (
-                      <button
-                        onClick={() => handleRemoveMember(member.userId, member.displayName)}
-                        disabled={formLoading}
-                        className="inline-flex items-center px-3 py-2 border border-red-300 dark:border-red-600 rounded-md shadow-sm text-sm font-medium text-red-700 dark:text-red-400 bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <UserMinus className="h-4 w-4 mr-2" />
-                        Remove
-                      </button>
-                    )}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Pending Invitations */}
-            {family.invitations && family.invitations.filter(inv => inv.status === 'pending').length > 0 && (
-              <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Pending Invitations
-                  </h3>
-                </div>
-                <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {family.invitations
-                    .filter(inv => inv.status === 'pending')
-                    .map((invitation, index) => (
-                      <div key={index} className="p-6 flex items-center justify-between">
-                        <div>
-                          <h4 className="text-lg font-medium text-gray-900 dark:text-white">
-                            {invitation.email}
-                          </h4>
-                          <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-                            <Calendar className="h-3 w-3" />
-                            <span>Invited {formatDate(invitation.createdAt)}</span>
-                            <span>•</span>
-                            <span>Expires {formatDate(invitation.expiresAt)}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                            Pending
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>
