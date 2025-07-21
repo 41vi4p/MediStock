@@ -1,6 +1,8 @@
 # 💊 MediStock - Medicine Inventory Management
 
-A comprehensive web application for managing home medicine inventory with expiry tracking, family sharing, and intelligent notifications. Built with Next.js, TypeScript, and Firebase.
+**Version 1.5.0** - A comprehensive web application for managing home medicine inventory with expiry tracking, family sharing, and intelligent notifications. Built with Next.js, TypeScript, and Firebase.
+
+🔗 **[View Changelog](VERSION_CHANGELOG.md)** | 📱 **[Live Demo](https://medistock.vercel.app)**
 
 ![MediStock Dashboard](https://via.placeholder.com/800x400?text=MediStock+Dashboard)
 
@@ -8,9 +10,11 @@ A comprehensive web application for managing home medicine inventory with expiry
 
 ### 🏠 **Family Medicine Management**
 - **Family Groups**: Create and manage medicine inventory for your entire family
-- **Member Invitations**: Invite family members via email with secure invitation system
+- **6-Character Family Codes**: Simple, secure family joining system (no email required)
+- **Optional Password Protection**: Secure families with bcrypt-encrypted passwords
 - **Role-Based Access**: Admin and member roles with appropriate permissions
 - **Real-time Sync**: All family members see inventory updates instantly
+- **Code Regeneration**: Admins can generate new family codes anytime
 
 ### 💊 **Medicine Tracking**
 - **Comprehensive Database**: Store medicine details, quantities, categories, and locations
@@ -24,11 +28,13 @@ A comprehensive web application for managing home medicine inventory with expiry
 - **Sorting Options**: Sort by name, expiry date, quantity, or category
 - **Quick Access**: Dedicated expired medicines page with filtering
 
-### 📱 **Responsive Design**
-- **Mobile-First**: Optimized for both desktop and mobile devices
+### 📱 **Enhanced Mobile Experience**
+- **Mobile-First**: Fully optimized for phones and tablets
+- **Responsive Buttons**: Stack properly on mobile with full-width design
+- **Touch-Friendly Forms**: Large tap targets and intuitive layouts
+- **Improved Dropdown**: Email overflow handling with proper text truncation
 - **Adaptive Navigation**: Desktop navbar transforms to bottom navigation on mobile
-- **Profile Dropdown**: Clean mobile interface with profile menu access
-- **Touch-Friendly**: Designed for easy mobile interaction
+- **Professional Mobile UI**: Clean interface that works perfectly on small screens
 
 ### 🔐 **Authentication & Security**
 - **Google OAuth**: Quick sign-in with Google account
@@ -176,11 +182,14 @@ src/
 
 ## 🎯 Core Features Guide
 
-### Family Management
-1. **Create Family**: First-time users create a family group
-2. **Invite Members**: Admins can invite others via email
-3. **Manage Permissions**: Control who can add/remove members
-4. **View Members**: See all family members with their roles
+### Family Management (v1.5.0 Enhanced)
+1. **Create Family**: Set up family group with optional password protection
+2. **Generate Family Code**: Get unique 6-character code for easy sharing
+3. **Invite Members**: Share family code (and password if set) with family members
+4. **Join Family**: Enter family code and optional password to join
+5. **Manage Security**: Change or remove family passwords anytime (admins only)
+6. **Regenerate Codes**: Create new family codes when needed
+7. **View Members**: See all family members with their roles and join dates
 
 ### Medicine Management
 1. **Add Medicines**: Comprehensive form with all details
@@ -312,6 +321,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Tailwind CSS**: Beautiful utility-first CSS
 - **Lucide**: Gorgeous icon library
 - **Vercel**: Excellent deployment platform
+
+## 🔍 What's New in v1.5.0
+
+✅ **Family Code System**: No more email dependencies - simple 6-character codes
+✅ **Password Protection**: Optional bcrypt-encrypted family passwords
+✅ **Enhanced Mobile UI**: Perfect mobile experience with responsive design
+✅ **Improved Security**: Better validation and admin-only operations
+✅ **Cleaner Interface**: Conditional content display and better form handling
 
 ## 🔮 Roadmap
 

@@ -1,5 +1,5 @@
 export const APP_VERSION = {
-  version: 'v1.0.0',
+  version: 'v1.5.0',
   releaseDate: 'January 21, 2024',
   buildType: 'stable' as 'stable' | 'beta' | 'alpha',
   buildNumber: '1.0.0',
