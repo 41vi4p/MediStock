@@ -12,6 +12,7 @@ import {
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, googleProvider, db } from '@/lib/firebase';
 import { User } from '@/types';
+import ActivityLogger from '@/lib/activityLogger';
 
 interface AuthContextType {
   user: User | null;
@@ -33,7 +34,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (firebaseUser) {
         const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
         if (userDoc.exists()) {
-          setUser(userDoc.data() as User);
+          const userData = userDoc.data() as User;
+          setUser(userData);
+          
+          // Log signin (only if user has familyId)
+          if (userData.familyId) {
+            await ActivityLogger.logUserSignin(
+              userData.id,
+              userData.displayName,
+              userData.familyId
+            );
+          }
         } else {
           const newUser: User = {
             id: firebaseUser.uid,

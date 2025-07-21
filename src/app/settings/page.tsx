@@ -1,9 +1,15 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import Layout from '@/components/Layout/Layout';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { APP_VERSION, getVersionInfo } from '@/lib/version';
+import ActivityLogger from '@/lib/activityLogger';
 import { 
   User, 
   Users, 
@@ -12,13 +18,34 @@ import {
   FileText, 
   Bell,
   Shield,
-  HelpCircle
+  HelpCircle,
+  Info,
+  Pill,
+  Code,
+  Heart,
+  ExternalLink
 } from 'lucide-react';
 
 export default function Settings() {
   const { user } = useAuth();
-  const [darkMode, setDarkMode] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   const [notifications, setNotifications] = useState(true);
+  const versionInfo = getVersionInfo();
+
+  const handleNotificationToggle = async () => {
+    setNotifications(!notifications);
+    
+    // Log notification settings change
+    if (user?.familyId) {
+      await ActivityLogger.logSettingsUpdated(
+        user.id,
+        user.displayName,
+        user.familyId,
+        'notifications',
+        { enabled: !notifications }
+      );
+    }
+  };
 
   return (
     <Layout>
@@ -82,9 +109,12 @@ export default function Settings() {
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Manage family members who can access your medicine inventory
               </p>
-              <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+              <Link
+                href="/family"
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+              >
                 Manage Family Members
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -92,7 +122,7 @@ export default function Settings() {
           <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-                {darkMode ? <Moon className="h-5 w-5 mr-2" /> : <Sun className="h-5 w-5 mr-2" />}
+                {theme === 'dark' ? <Moon className="h-5 w-5 mr-2" /> : <Sun className="h-5 w-5 mr-2" />}
                 Appearance
               </h2>
             </div>
@@ -107,14 +137,14 @@ export default function Settings() {
                   </p>
                 </div>
                 <button
-                  onClick={() => setDarkMode(!darkMode)}
+                  onClick={toggleTheme}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    darkMode ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
+                    theme === 'dark' ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
                   }`}
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      darkMode ? 'translate-x-6' : 'translate-x-1'
+                      theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
                     }`}
                   />
                 </button>
@@ -142,7 +172,7 @@ export default function Settings() {
                     </p>
                   </div>
                   <button
-                    onClick={() => setNotifications(!notifications)}
+                    onClick={handleNotificationToggle}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                       notifications ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
                     }`}
@@ -170,9 +200,12 @@ export default function Settings() {
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 View all activities and changes made to your medicine inventory
               </p>
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+              <Link
+                href="/logs"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+              >
                 View Activity Logs
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -193,7 +226,10 @@ export default function Settings() {
                   <p className="text-gray-600 dark:text-gray-400 mb-3">
                     Manage your password and account security settings
                   </p>
-                  <button className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                  <button 
+                    onClick={() => alert('Password change functionality would be implemented here')}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                  >
                     Change Password
                   </button>
                 </div>
@@ -219,13 +255,129 @@ export default function Settings() {
                     Get support or learn how to use MediStock
                   </p>
                   <div className="space-x-3">
-                    <button className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <button 
+                      onClick={() => alert('Documentation would open here')}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                    >
                       Documentation
                     </button>
-                    <button className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <button 
+                      onClick={() => alert('Support contact form would open here')}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                    >
                       Contact Support
                     </button>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* About & Version */}
+          <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                <Info className="h-5 w-5 mr-2" />
+                About MediStock
+              </h2>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* App Info */}
+                <div className="flex items-start space-x-4">
+                  <div className="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-lg">
+                    <Pill className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      MediStock {versionInfo.fullVersion}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-2">
+                      A comprehensive medicine inventory management system for families
+                    </p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                      <span className="flex items-center">
+                        <Code className="h-4 w-4 mr-1" />
+                        Built with Next.js & Firebase
+                      </span>
+                      <span className="flex items-center">
+                        <Heart className="h-4 w-4 mr-1 text-red-500" />
+                        Made for families
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Version Information */}
+                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                    Version Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Version:</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">{versionInfo.fullVersion}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Release Date:</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">{versionInfo.releaseDate}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Build:</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400 capitalize">{versionInfo.buildType}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Platform:</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">Web Application</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Key Features */}
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                    Key Features in {versionInfo.fullVersion}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {APP_VERSION.features.map((feature, index) => (
+                      <div key={index} className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                        <div className="h-1.5 w-1.5 bg-blue-600 rounded-full mr-2"></div>
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Links */}
+                <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200 dark:border-gray-600">
+                  <button 
+                    onClick={() => window.open('/changelog', '_blank')}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    View Changelog
+                  </button>
+                  <button 
+                    onClick={() => window.open('https://github.com/your-username/medistock', '_blank')}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    GitHub Repository
+                  </button>
+                  <button 
+                    onClick={() => window.open('https://github.com/your-username/medistock/issues', '_blank')}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Report Issues
+                  </button>
+                </div>
+
+                {/* Copyright */}
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                    © 2024 MediStock. Made with ❤️ for better medicine management.
+                  </p>
                 </div>
               </div>
             </div>

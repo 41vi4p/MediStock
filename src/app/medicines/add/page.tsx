@@ -1,10 +1,13 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
+import ActivityLogger from '@/lib/activityLogger';
 import Layout from '@/components/Layout/Layout';
 import { Save, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -63,6 +66,20 @@ export default function AddMedicine() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+
+      // Log the activity
+      await ActivityLogger.logMedicineAdded(
+        user.id,
+        user.displayName,
+        user.familyId,
+        formData.name,
+        {
+          category: formData.category,
+          quantity: parseInt(formData.quantity),
+          unit: formData.unit,
+          location: formData.location
+        }
+      );
 
       router.push('/dashboard');
     } catch (error) {

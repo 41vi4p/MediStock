@@ -13,6 +13,7 @@ import {
 import { db } from '@/lib/firebase';
 import { useAuth } from './AuthContext';
 import { Family, FamilyMember, FamilyInvitation } from '@/types';
+import ActivityLogger from '@/lib/activityLogger';
 
 interface FamilyContextType {
   family: Family | null;
@@ -75,7 +76,8 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
   const createFamily = async (name: string, description?: string) => {
     if (!user) throw new Error('User not authenticated');
 
-    const familyData: Omit<Family, 'id'> = {
+    const now = new Date();
+    const familyData = {
       name,
       description,
       createdBy: user.id,
@@ -84,29 +86,29 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
         email: user.email,
         displayName: user.displayName,
         photoURL: user.photoURL,
-        role: 'admin',
-        joinedAt: new Date(),
+        role: 'admin' as const,
+        joinedAt: now,
       }],
       invitations: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const familyRef = await addDoc(collection(db, 'families'), {
-      ...familyData,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-      members: familyData.members.map(member => ({
-        ...member,
-        joinedAt: serverTimestamp(),
-      })),
-    });
+    };
+
+    const familyRef = await addDoc(collection(db, 'families'), familyData);
 
     // Update user with familyId
     await updateDoc(doc(db, 'users', user.id), {
       familyId: familyRef.id,
       updatedAt: serverTimestamp(),
     });
+
+    // Log family creation
+    await ActivityLogger.logFamilyCreated(
+      user.id,
+      user.displayName,
+      familyRef.id,
+      name
+    );
   };
 
   const inviteMember = async (email: string) => {
@@ -126,24 +128,30 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
       throw new Error('Invitation already sent to this email');
     }
 
-    const invitation: Omit<FamilyInvitation, 'id'> = {
+    const now = new Date();
+    const invitation = {
+      id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       email,
       invitedBy: user.id,
-      status: 'pending',
-      createdAt: new Date(),
+      status: 'pending' as const,
+      createdAt: now,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
     };
 
     const updatedInvitations = [...(family.invitations || []), invitation];
 
     await updateDoc(doc(db, 'families', family.id), {
-      invitations: updatedInvitations.map(inv => ({
-        ...inv,
-        createdAt: inv.createdAt instanceof Date ? serverTimestamp() : inv.createdAt,
-        expiresAt: inv.expiresAt instanceof Date ? serverTimestamp() : inv.expiresAt,
-      })),
+      invitations: updatedInvitations,
       updatedAt: serverTimestamp(),
     });
+
+    // Log member invitation
+    await ActivityLogger.logMemberInvited(
+      user.id,
+      user.displayName,
+      family.id,
+      email
+    );
   };
 
   const removeMember = async (userId: string) => {
@@ -160,13 +168,11 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
       throw new Error('Family creator cannot be removed');
     }
 
+    const memberToRemove = family.members.find(member => member.userId === userId);
     const updatedMembers = family.members.filter(member => member.userId !== userId);
 
     await updateDoc(doc(db, 'families', family.id), {
-      members: updatedMembers.map(member => ({
-        ...member,
-        joinedAt: member.joinedAt instanceof Date ? serverTimestamp() : member.joinedAt,
-      })),
+      members: updatedMembers,
       updatedAt: serverTimestamp(),
     });
 
@@ -175,6 +181,16 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
       familyId: null,
       updatedAt: serverTimestamp(),
     });
+
+    // Log member removal
+    if (memberToRemove) {
+      await ActivityLogger.logMemberRemoved(
+        user.id,
+        user.displayName,
+        family.id,
+        memberToRemove.displayName
+      );
+    }
   };
 
   const leaveFamily = async () => {
@@ -188,10 +204,7 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     const updatedMembers = family.members.filter(member => member.userId !== user.id);
 
     await updateDoc(doc(db, 'families', family.id), {
-      members: updatedMembers.map(member => ({
-        ...member,
-        joinedAt: member.joinedAt instanceof Date ? serverTimestamp() : member.joinedAt,
-      })),
+      members: updatedMembers,
       updatedAt: serverTimestamp(),
     });
 
@@ -241,15 +254,8 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     ) || [];
 
     await updateDoc(doc(db, 'families', familyId), {
-      members: updatedMembers.map(member => ({
-        ...member,
-        joinedAt: member.joinedAt instanceof Date ? serverTimestamp() : member.joinedAt,
-      })),
-      invitations: updatedInvitations.map(inv => ({
-        ...inv,
-        createdAt: inv.createdAt instanceof Date ? serverTimestamp() : inv.createdAt,
-        expiresAt: inv.expiresAt instanceof Date ? serverTimestamp() : inv.expiresAt,
-      })),
+      members: updatedMembers,
+      invitations: updatedInvitations,
       updatedAt: serverTimestamp(),
     });
 
@@ -258,6 +264,13 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
       familyId,
       updatedAt: serverTimestamp(),
     });
+
+    // Log invitation acceptance
+    await ActivityLogger.logInvitationAccepted(
+      user.id,
+      user.displayName,
+      familyId
+    );
   };
 
   const value = {
