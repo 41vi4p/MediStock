@@ -22,7 +22,6 @@ import {
   Info,
   Pill,
   Code,
-  Heart,
   ExternalLink
 } from 'lucide-react';
 
@@ -137,6 +136,7 @@ export default function Settings() {
                   </p>
                 </div>
                 <button
+                  type="button"
                   onClick={toggleTheme}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                     theme === 'dark' ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
@@ -174,6 +174,7 @@ export default function Settings() {
                     </p>
                   </div>
                   <button
+                    type="button"
                     onClick={handleNotificationToggle}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                       notifications ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
@@ -210,6 +211,67 @@ export default function Settings() {
               >
                 View Activity Logs
               </Link>
+            </div>
+          </div>
+
+          {/* Data Management */}
+          <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                <Shield className="h-5 w-5 mr-2" />
+                Data Management
+              </h2>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div className="flex items-start space-x-4">
+                  <div className="bg-blue-100 dark:bg-blue-900/20 p-2 rounded-lg">
+                    <Pill className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                      Medicine Records Management
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-3">
+                      Manage expired medicines and shopping list items with advanced removal options
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      <Link
+                        href="/medicines/expired"
+                        className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                      >
+                        Manage Expired Medicines
+                      </Link>
+                      <Link
+                        href="/medicines/shopping"
+                        className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                      >
+                        Manage Shopping List
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-yellow-100 dark:bg-yellow-900/30 p-2 rounded-full">
+                      <HelpCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-1">
+                        Available Features:
+                      </h4>
+                      <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
+                        <li>• Bulk removal of expired medicines</li>
+                        <li>• Individual and bulk removal from shopping list</li>
+                        <li>• Auto-clear completed shopping items</li>
+                        <li>• Selective removal with checkboxes</li>
+                        <li>• Complete activity logging for all actions</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -289,6 +351,7 @@ export default function Settings() {
                 {/* Links */}
                 <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200 dark:border-gray-600">
                   <button 
+                    type="button"
                     onClick={() => window.open('/changelog', '_blank')}
                     className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                   >
@@ -296,6 +359,7 @@ export default function Settings() {
                     View Changelog
                   </button>
                   <button 
+                    type="button"
                     onClick={() => window.open('https://github.com/41vi4p/MediStock', '_blank')}
                     className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                   >
@@ -303,6 +367,7 @@ export default function Settings() {
                     GitHub Repository
                   </button>
                   <button 
+                    type="button"
                     onClick={() => window.open('https://github.com/41vi4p/MediStock/issues', '_blank')}
                     className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                   >

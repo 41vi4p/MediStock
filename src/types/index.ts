@@ -12,6 +12,9 @@ export interface Medicine {
   familyId: string;
   createdAt: Date;
   updatedAt: Date;
+  isOutOfStock: boolean;
+  outOfStockDate?: Date;
+  outOfStockBy?: string;
 }
 
 export interface Family {
@@ -48,11 +51,26 @@ export interface User {
 
 export interface ActivityLog {
   id: string;
-  type: 'medicine_added' | 'medicine_updated' | 'medicine_deleted' | 'user_signin' | 'user_signup' | 'family_created' | 'member_added';
+  type: 'medicine_added' | 'medicine_updated' | 'medicine_deleted' | 'user_signin' | 'user_signup' | 'family_created' | 'member_added' | 'shopping_item_added' | 'shopping_item_removed';
   userId: string;
   userName: string;
   description: string;
   familyId: string;
   createdAt: Date;
   metadata?: Record<string, unknown>;
+}
+
+export interface ShoppingItem {
+  id: string;
+  name: string;
+  description?: string;
+  category: string;
+  priority: 'low' | 'medium' | 'high';
+  addedBy: string;
+  addedByName: string;
+  familyId: string;
+  createdAt: Date;
+  isCompleted: boolean;
+  completedBy?: string;
+  completedAt?: Date;
 }

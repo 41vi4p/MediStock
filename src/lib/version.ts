@@ -1,6 +1,6 @@
 export const APP_VERSION = {
-  version: 'v1.5.6',
-  releaseDate: 'July 21, 2025',
+  version: 'v1.5.8',
+  releaseDate: 'July 23, 2025',
   buildType: 'stable' as 'stable' | 'beta' | 'alpha',
   buildNumber: '1.0.0',
   codename: 'Genesis',

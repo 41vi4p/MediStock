@@ -5,6 +5,8 @@ export type LogType =
   | 'medicine_added' 
   | 'medicine_updated' 
   | 'medicine_deleted' 
+  | 'medicine_out_of_stock'
+  | 'medicine_back_in_stock'
   | 'user_signin' 
   | 'user_signup' 
   | 'family_created' 
@@ -13,7 +15,9 @@ export type LogType =
   | 'member_invited'
   | 'invitation_accepted'
   | 'settings_updated'
-  | 'password_changed';
+  | 'password_changed'
+  | 'shopping_item_added'
+  | 'shopping_item_removed';
 
 export interface LogEntry {
   type: LogType;
@@ -238,5 +242,8 @@ export class ActivityLogger {
     });
   }
 }
+
+// Convenience function for direct logging
+export const logActivity = ActivityLogger.log.bind(ActivityLogger);
 
 export default ActivityLogger;
