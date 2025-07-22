@@ -1,10 +1,9 @@
 # 💊 MediStock - Medicine Inventory Management
 
-**Version 1.5.0** - A comprehensive web application for managing home medicine inventory with expiry tracking, family sharing, and intelligent notifications. Built with Next.js, TypeScript, and Firebase.
+**Version 1.5.8** - A comprehensive web application for managing home medicine inventory with expiry tracking, family sharing, and intelligent notifications. Built with Next.js, TypeScript, and Firebase.
 
 🔗 **[View Changelog](VERSION_CHANGELOG.md)** 
 
-![MediStock Dashboard](https://via.placeholder.com/800x400?text=MediStock+Dashboard)
 
 ## ✨ Features
 
@@ -24,17 +23,20 @@
 
 ### 🔍 **Advanced Search & Filtering**
 - **Powerful Search**: Find medicines by name, description, or category
-- **Multiple Filters**: Filter by category, location, expiry status
+- **Multiple Filters**: Filter by category, location, stock status, expiry status
+- **Out of Stock Management**: Mark medicines as out of stock with tracking
 - **Sorting Options**: Sort by name, expiry date, quantity, or category
 - **Quick Access**: Dedicated expired medicines page with filtering
+- **Delete Functionality**: Remove medicines with confirmation dialogs
 
 ### 📱 **Enhanced Mobile Experience**
 - **Mobile-First**: Fully optimized for phones and tablets
-- **Responsive Buttons**: Stack properly on mobile with full-width design
+- **Responsive Dashboard**: Shopping list integration with tiled button layouts
 - **Touch-Friendly Forms**: Large tap targets and intuitive layouts
 - **Improved Dropdown**: Email overflow handling with proper text truncation
 - **Adaptive Navigation**: Desktop navbar transforms to bottom navigation on mobile
 - **Professional Mobile UI**: Clean interface that works perfectly on small screens
+- **Grid-Based Layout**: Modern CSS grid for reliable responsive design
 
 ### 🔐 **Authentication & Security**
 - **Google OAuth**: Quick sign-in with Google account
@@ -45,8 +47,10 @@
 ### 🌓 **Modern UI/UX**
 - **Dark/Light Theme**: Toggle between themes (system coming soon)
 - **Modern Icons**: Beautiful Lucide React icons throughout
-- **Responsive Cards**: Clean, card-based interface
+- **Responsive Cards**: Clean, card-based interface with mobile optimization
 - **Loading States**: Smooth loading animations and states
+- **Shopping List Integration**: Quick access from dashboard with purple theming
+- **Confirmation Modals**: Safe deletion and action confirmations
 
 ## 🚀 Tech Stack
 
@@ -306,8 +310,8 @@ npm run type-check
 
 ### Getting Help
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/medistock/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/medistock/discussions)
+- **Issues**: [GitHub Issues](https://github.com/41vi4p/medistock/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/41vi4p/medistock/discussions)
 - **Documentation**: Check Firebase and Next.js docs
 
 ## 📄 License
@@ -322,8 +326,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Lucide**: Gorgeous icon library
 - **Vercel**: Excellent deployment platform
 
-## 🔍 What's New in v1.5.0
+## 🔍 What's New in v1.5.8
 
+✅ **Shopping List Integration**: Quick access shopping button on dashboard
+✅ **Enhanced Mobile Dashboard**: Proper button tiling with CSS grid layout
+✅ **Responsive Design**: Optimized layouts from mobile to desktop
+✅ **Out of Stock Management**: Mark and filter medicines by stock status
+✅ **Delete Functionality**: Safe medicine deletion with confirmations
+✅ **Bulk Operations**: Manage expired medicines and shopping lists efficiently
+
+### Previous in v1.5.0
 ✅ **Family Code System**: No more email dependencies - simple 6-character codes
 ✅ **Password Protection**: Optional bcrypt-encrypted family passwords
 ✅ **Enhanced Mobile UI**: Perfect mobile experience with responsive design

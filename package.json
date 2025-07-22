@@ -1,6 +1,6 @@
 {
   "name": "medistock",
-  "version": "0.1.0",
+  "version": "1.5.8",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",

@@ -5,6 +5,88 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.5.8] - 2025-07-23
+
+### ✨ Dashboard & Shopping List Enhancements
+
+This release focuses on improving the dashboard user experience, particularly on mobile devices, with enhanced shopping list integration and optimized button layouts.
+
+### 🆕 New Features
+
+#### 🛒 **Shopping List Integration**
+- **Dashboard Shopping Button**: Added dedicated shopping list button above "Add Medicine" on dashboard
+- **Quick Access**: Easy navigation to shopping list from main dashboard
+- **Purple Theme**: Consistent purple branding for shopping-related features
+- **Responsive Design**: Button adapts perfectly across all screen sizes
+
+#### 📱 **Enhanced Mobile Dashboard Layout**
+- **Improved Button Tiling**: Add Medicine and View All Medicines now display in the same row on mobile
+- **CSS Grid Implementation**: Modern grid system for reliable responsive layouts  
+- **Mobile-First Design**: Optimized specifically for phone and tablet interactions
+- **Consistent Spacing**: Better padding and margins across all device sizes
+
+### 🎨 UI/UX Improvements
+
+#### **Responsive Button Design**
+- **Flexible Layouts**: Buttons stack vertically on small screens, horizontal on larger screens
+- **Touch-Friendly**: Proper button sizing and spacing for mobile interaction
+- **Icon & Text Arrangement**: Smart content arrangement based on screen size
+- **Full-Width Mobile**: Buttons use full width on mobile for better accessibility
+
+#### **Dashboard Organization**
+- **Logical Flow**: Shopping list → Add Medicine → View All sequence
+- **Visual Hierarchy**: Clear priority and importance through button placement
+- **Consistent Theming**: Color-coded buttons (Purple, Blue, Green) for different functions
+
+### 🔧 Technical Improvements
+
+#### **CSS & Responsive Design**
+- **Modern Grid System**: Replaced flex layouts with CSS Grid for better control
+- **Breakpoint Optimization**: Improved responsive breakpoints for various device sizes
+- **Performance**: Optimized rendering with efficient CSS classes
+- **Build Verification**: All changes tested and verified in production build
+
+#### **Code Quality**
+- **Component Structure**: Clean, maintainable dashboard layout components
+- **Type Safety**: Full TypeScript support for all new features
+- **Responsive Patterns**: Established consistent patterns for future mobile improvements
+
+### 📱 Mobile Experience Enhancements
+
+#### **Dashboard Navigation**
+- **One-Tap Access**: Quick access to all main features from dashboard
+- **Thumb-Friendly**: Buttons positioned for easy thumb navigation
+- **Loading States**: Smooth transitions and feedback for all interactions
+- **Screen Adaptation**: Seamless experience from 320px mobile to 1920px+ desktop
+
+#### **Visual Polish**
+- **Consistent Iconography**: Matching icons across all dashboard buttons
+- **Spacing Harmony**: Uniform spacing and sizing throughout
+- **Professional Appearance**: Clean, modern interface suitable for all users
+
+### 🛠️ **Technical Details**
+
+#### **Layout System**
+```css
+/* Mobile-first grid approach */
+grid-cols-2 gap-3 sm:gap-4
+flex-col sm:flex-row items-center
+```
+
+#### **Responsive Patterns**
+- **Small screens**: Vertical stacking with full-width buttons
+- **Medium screens**: Horizontal layout with proper spacing
+- **Large screens**: Optimized desktop experience
+
+### 🎯 **User Benefits**
+
+- **Faster Navigation**: Quick access to shopping list from main screen
+- **Better Mobile Use**: Properly tiled buttons that work great on phones
+- **Consistent Experience**: Same great experience across all device sizes
+- **Professional Feel**: Clean, organized dashboard that feels modern and reliable
+
+---
+
 ## [v1.5.0] - 2025-07-21
 
 ### 🎉 Major Family System Overhaul

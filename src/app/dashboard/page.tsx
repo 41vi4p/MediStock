@@ -189,27 +189,42 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="mb-8 space-y-4">
+          {/* Shopping List Button - Full width on all screens */}
           <Link
-            href="/medicines/add"
-            className="bg-blue-600 hover:bg-blue-700 text-white p-4 sm:p-6 rounded-lg shadow-md transition-colors flex items-center space-x-3 sm:space-x-4 w-full sm:max-w-md"
+            href="/medicines/shopping"
+            className="bg-purple-600 hover:bg-purple-700 text-white p-4 sm:p-6 rounded-lg shadow-md transition-colors flex items-center space-x-3 sm:space-x-4 w-full"
           >
-            <Plus className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0" />
+            <ShoppingCart className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0" />
             <div className="flex-1">
-              <h3 className="text-base sm:text-lg font-semibold">Add Medicine</h3>
-              <p className="text-blue-100 text-sm sm:text-base">Add new medicine to inventory</p>
+              <h3 className="text-base sm:text-lg font-semibold">Shopping List</h3>
+              <p className="text-purple-100 text-sm sm:text-base">Manage medicines you need to buy</p>
             </div>
           </Link>
           
-          <Link
-            href="/medicines/search"
-            className="bg-green-600 hover:bg-green-700 text-white p-4 sm:p-6 rounded-lg shadow-md transition-colors flex items-center space-x-3 sm:space-x-4 w-full sm:max-w-md"
-          >
-            <Pill className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0" />
-            <div className="flex-1">
-              <h3 className="text-base sm:text-lg font-semibold">View All Medicines</h3>
-              <p className="text-green-100 text-sm sm:text-base">Browse and search your medicine inventory</p>
-            </div>
-          </Link>
+          {/* Add Medicine and View All Medicines - Row layout on all screens */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <Link
+              href="/medicines/add"
+              className="bg-blue-600 hover:bg-blue-700 text-white p-3 sm:p-6 rounded-lg shadow-md transition-colors flex flex-col sm:flex-row items-center sm:space-x-4 w-full text-center sm:text-left"
+            >
+              <Plus className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0 mb-2 sm:mb-0" />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm sm:text-lg font-semibold">Add Medicine</h3>
+                <p className="text-blue-100 text-xs sm:text-base hidden sm:block">Add new medicine to inventory</p>
+              </div>
+            </Link>
+            
+            <Link
+              href="/medicines/search"
+              className="bg-green-600 hover:bg-green-700 text-white p-3 sm:p-6 rounded-lg shadow-md transition-colors flex flex-col sm:flex-row items-center sm:space-x-4 w-full text-center sm:text-left"
+            >
+              <Pill className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0 mb-2 sm:mb-0" />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm sm:text-lg font-semibold">View All Medicines</h3>
+                <p className="text-green-100 text-xs sm:text-base hidden sm:block">Browse and search your medicine inventory</p>
+              </div>
+            </Link>
+          </div>
         </div>
 
         {/* Recent Medicines */}

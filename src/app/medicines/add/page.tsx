@@ -63,6 +63,7 @@ export default function AddMedicine() {
         purchaseDate: new Date(formData.purchaseDate),
         addedBy: user.id,
         familyId: user.familyId,
+        isOutOfStock: false,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
