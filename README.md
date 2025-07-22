@@ -2,7 +2,7 @@
 
 **Version 1.5.0** - A comprehensive web application for managing home medicine inventory with expiry tracking, family sharing, and intelligent notifications. Built with Next.js, TypeScript, and Firebase.
 
-🔗 **[View Changelog](VERSION_CHANGELOG.md)** | 📱 **[Live Demo](https://medistock.vercel.app)**
+🔗 **[View Changelog](VERSION_CHANGELOG.md)** 
 
 ![MediStock Dashboard](https://via.placeholder.com/800x400?text=MediStock+Dashboard)
 
