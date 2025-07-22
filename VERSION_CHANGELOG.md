@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.5.0] - 2025-01-21
+## [v1.5.0] - 2025-07-21
 
 ### 🎉 Major Family System Overhaul
 
@@ -94,7 +94,7 @@ This release completely transforms the family invitation system and introduces p
 
 ---
 
-## [v1.0.0] - 2024-01-21
+## [v1.0.0] - 2025-07-20
 
 ### 🎉 Initial Release
 
@@ -262,7 +262,7 @@ This is the first stable release of MediStock - a comprehensive medicine invento
 
 ---
 
-**Release Date**: January 21, 2024  
+**Release Date**: July 21, 2025
 **Build**: `v1.0.0-stable`  
 **Commit**: `Initial stable release`
 

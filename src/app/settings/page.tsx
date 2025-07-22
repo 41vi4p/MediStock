@@ -141,6 +141,8 @@ export default function Settings() {
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                     theme === 'dark' ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
                   }`}
+                  aria-label="Toggle dark mode"
+                  title="Toggle dark mode"
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -176,6 +178,8 @@ export default function Settings() {
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                       notifications ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
                     }`}
+                    title={notifications ? "Disable expiry notifications" : "Enable expiry notifications"}
+                    aria-label={notifications ? "Disable expiry notifications" : "Enable expiry notifications"}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -209,69 +213,9 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Security */}
-          <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-                <Shield className="h-5 w-5 mr-2" />
-                Security
-              </h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                    Account Security
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-3">
-                    Manage your password and account security settings
-                  </p>
-                  <button 
-                    onClick={() => alert('Password change functionality would be implemented here')}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                  >
-                    Change Password
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+         
 
-          {/* Help & Support */}
-          <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-                <HelpCircle className="h-5 w-5 mr-2" />
-                Help & Support
-              </h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                    Need help?
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-3">
-                    Get support or learn how to use MediStock
-                  </p>
-                  <div className="space-x-3">
-                    <button 
-                      onClick={() => alert('Documentation would open here')}
-                      className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                    >
-                      Documentation
-                    </button>
-                    <button 
-                      onClick={() => alert('Support contact form would open here')}
-                      className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                    >
-                      Contact Support
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          
 
           {/* About & Version */}
           <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg border border-gray-200 dark:border-gray-700">
@@ -300,10 +244,7 @@ export default function Settings() {
                         <Code className="h-4 w-4 mr-1" />
                         Built with Next.js & Firebase
                       </span>
-                      <span className="flex items-center">
-                        <Heart className="h-4 w-4 mr-1 text-red-500" />
-                        Made for families
-                      </span>
+                      
                     </div>
                   </div>
                 </div>
@@ -326,10 +267,7 @@ export default function Settings() {
                       <span className="font-medium text-gray-700 dark:text-gray-300">Build:</span>
                       <span className="ml-2 text-gray-600 dark:text-gray-400 capitalize">{versionInfo.buildType}</span>
                     </div>
-                    <div>
-                      <span className="font-medium text-gray-700 dark:text-gray-300">Platform:</span>
-                      <span className="ml-2 text-gray-600 dark:text-gray-400">Web Application</span>
-                    </div>
+                  
                   </div>
                 </div>
 
@@ -358,14 +296,14 @@ export default function Settings() {
                     View Changelog
                   </button>
                   <button 
-                    onClick={() => window.open('https://github.com/your-username/medistock', '_blank')}
+                    onClick={() => window.open('https://github.com/41vi4p/MediStock', '_blank')}
                     className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
                     GitHub Repository
                   </button>
                   <button 
-                    onClick={() => window.open('https://github.com/your-username/medistock/issues', '_blank')}
+                    onClick={() => window.open('https://github.com/41vi4p/MediStock/issues', '_blank')}
                     className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
@@ -376,7 +314,7 @@ export default function Settings() {
                 {/* Copyright */}
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
                   <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                    © 2024 MediStock. Made with ❤️ for better medicine management.
+                    © 2025 MediStock by David Porathur
                   </p>
                 </div>
               </div>
