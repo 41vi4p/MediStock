@@ -19,6 +19,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="google-signin-client_id" content={process.env.NEXT_PUBLIC_FIREBASE_WEB_CLIENT_ID} />
+      </head>
       <body className={inter.className}>
         <AuthProvider>
           <ThemeProvider>

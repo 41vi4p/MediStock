@@ -4,4 +4,5 @@
     <string name="title_activity_main">MediStock</string>
     <string name="package_name">com.medistock.app</string>
     <string name="custom_url_scheme">com.medistock.app</string>
+    <string name="server_client_id">@string/default_web_client_id</string>
 </resources>
