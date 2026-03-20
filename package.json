@@ -16,7 +16,7 @@
     "date-fns": "^4.1.0",
     "firebase": "^12.11.0",
     "lucide-react": "^0.525.0",
-    "next": "15.5.14",
+    "next": "16.2.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.71.2",
