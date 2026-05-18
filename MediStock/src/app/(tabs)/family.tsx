@@ -99,9 +99,9 @@ export default function FamilyScreen() {
 
         {showCreate && (
           <View style={styles.form}>
-            <TextInput style={styles.input} placeholder="Family Name *" value={familyName} onChangeText={setFamilyName} placeholderTextColor="#999" />
-            <TextInput style={styles.input} placeholder="Description (optional)" value={familyDesc} onChangeText={setFamilyDesc} placeholderTextColor="#999" />
-            <TextInput style={styles.input} placeholder="Password (optional)" value={familyPassword} onChangeText={setFamilyPassword} secureTextEntry placeholderTextColor="#999" />
+            <TextInput style={[styles.input,{ color: colors.text }]} placeholder="Family Name *" value={familyName} onChangeText={setFamilyName} placeholderTextColor="#999" />
+            <TextInput style={[styles.input,{ color: colors.text }]} placeholder="Description (optional)" value={familyDesc} onChangeText={setFamilyDesc} placeholderTextColor="#999" />
+            <TextInput style={[styles.input,{ color: colors.text }]} placeholder="Password (optional)" value={familyPassword} onChangeText={setFamilyPassword} secureTextEntry placeholderTextColor="#999" />
             <TouchableOpacity style={styles.primaryBtn} onPress={handleCreate} disabled={submitting}>
               {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryBtnText}>Create</Text>}
             </TouchableOpacity>
@@ -191,7 +191,7 @@ export default function FamilyScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1 }, 
   content: { padding: 20, paddingTop: 60 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 28, fontWeight: 'bold', marginBottom: 8 },
