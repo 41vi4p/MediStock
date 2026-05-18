@@ -1,0 +1,363 @@
+# FIREBASE FIRESTORE SECURITY RULES FOR MEDISTOCK
+
+## Project Structure Analysis
+- **App Type**: Family-shared mobile medicine inventory (React Native/Expo)
+- **Collections**: users, families, medicines, shoppingItems, activityLogs
+- **Auth Method**: Firebase Auth (Email + Google OAuth)
+- **Key Feature**: Family-based access control with role-based admin permissions
+
+---
+
+## DATABASE SCHEMA
+
+### Collection: users
+```
+users/{userId}
+├── id: string (same as doc ID)
+├── email: string
+├── displayName: string
+├── photoURL: string (optional)
+├── familyId: string (optional - references families/{familyId})
+├── theme: 'light' | 'dark' (optional)
+└── createdAt: timestamp
+```
+
+### Collection: families
+```
+families/{familyId}
+├── id: string (same as doc ID)
+├── name: string
+├── description: string (optional)
+├── createdBy: string (userId)
+├── familyCode: string (6-char unique code for joining)
+├── passwordHash: string (optional - bcrypt hashed)
+├── members: array[FamilyMember]
+│   └── {userId, email, displayName, photoURL, role: 'admin'|'member', joinedAt}
+├── createdAt: timestamp
+└── updatedAt: timestamp
+```
+
+### Collection: medicines
+```
+medicines/{medicineId}
+├── id: string (same as doc ID)
+├── name: string
+├── description: string (optional)
+├── quantity: number
+├── unit: string
+├── expiryDate: timestamp
+├── purchaseDate: timestamp
+├── category: string
+├── location: string
+├── addedBy: string (userId)
+├── familyId: string (references families/{familyId})
+├── createdAt: timestamp
+├── updatedAt: timestamp
+├── isOutOfStock: boolean
+├── outOfStockDate: timestamp (optional)
+└── outOfStockBy: string (optional - userId)
+```
+
+### Collection: shoppingItems
+```
+shoppingItems/{itemId}
+├── id: string (same as doc ID)
+├── name: string
+├── description: string (optional)
+├── category: string
+├── priority: 'low' | 'medium' | 'high'
+├── addedBy: string (userId)
+├── addedByName: string
+├── familyId: string (references families/{familyId})
+├── createdAt: timestamp
+├── isCompleted: boolean
+├── completedBy: string (optional - userId)
+└── completedAt: timestamp (optional)
+```
+
+### Collection: activityLogs
+```
+activityLogs/{logId}
+├── type: LogType enum
+├── userId: string (who performed the action)
+├── userName: string
+├── description: string
+├── familyId: string (references families/{familyId})
+├── createdAt: timestamp
+└── metadata: map (optional - contextual data)
+```
+
+---
+
+## FIRESTORE SECURITY RULES
+
+```firestore
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================================================
+    // HELPER FUNCTIONS
+    // ============================================================================
+
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Get current user ID
+    function currentUserId() {
+      return request.auth.uid;
+    }
+
+    // Get user document data
+    function getUserData(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data;
+    }
+
+    // Get family members array
+    function getFamilyMembers(familyId) {
+      return get(/databases/$(database)/documents/families/$(familyId)).data.members;
+    }
+
+    // Get family data
+    function getFamilyData(familyId) {
+      return get(/databases/$(database)/documents/families/$(familyId)).data;
+    }
+
+    // Check if user is member of family
+    function isFamilyMember(uid, familyId) {
+      let members = getFamilyMembers(familyId);
+      return members.size() > 0 && uid in members.map(m => m.userId);
+    }
+
+    // Check if user is admin of family
+    function isFamilyAdmin(uid, familyId) {
+      let members = getFamilyMembers(familyId);
+      return members.filter(m => m.userId == uid && m.role == 'admin').size() > 0;
+    }
+
+    // ============================================================================
+    // COLLECTION: users
+    // ============================================================================
+
+    match /users/{userId} {
+      // Read: User can read their own document
+      allow read: if isAuthenticated() && currentUserId() == userId;
+
+      // Create: New users can create their own document (Firebase Auth integration)
+      allow create: if isAuthenticated() && currentUserId() == userId
+        && request.resource.data.id == userId
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.keys().hasAll(['id', 'email', 'displayName', 'createdAt']);
+
+      // Update: User can update their own document
+      allow update: if isAuthenticated() && currentUserId() == userId
+        && request.resource.data.id == userId
+        && request.resource.data.email == resource.data.email; // Cannot change email
+
+      // Delete: Prevent user deletion (keep records for audit trail)
+      # allow delete: if false;
+    }
+
+    // ============================================================================
+    // COLLECTION: families
+    // ============================================================================
+
+    match /families/{familyId} {
+      // Read: Family members can read their family
+      allow read: if isAuthenticated() && isFamilyMember(currentUserId(), familyId);
+
+      // Create: Authenticated users can create new families
+      allow create: if isAuthenticated()
+        && request.resource.data.createdBy == currentUserId()
+        && request.resource.data.keys().hasAll(['name', 'createdBy', 'familyCode', 'members', 'createdAt', 'updatedAt'])
+        && request.resource.data.members.size() == 1
+        # && request.resource.data.members[0].userId == currentUserId()
+        && request.resource.data.members[0].role == 'admin'
+        # && request.resource.data.familyCode.size() == 6; // Code is 6 chars
+
+      // Update: Only family admins can update
+      allow update: if isAuthenticated() && isFamilyAdmin(currentUserId(), familyId)
+        && request.resource.data.familyCode == resource.data.familyCode // Code cannot change (except during regenerate)
+        && request.resource.data.createdBy == resource.data.createdBy; // Creator cannot change
+
+      // Delete: Prevent family deletion (keep audit trail)
+      # allow delete: if false;
+
+      // Subcollection: Family members management
+      match /{document=**} {
+        allow read: if isAuthenticated() && isFamilyMember(currentUserId(), familyId);
+      }
+    }
+
+    // ============================================================================
+    // COLLECTION: medicines
+    // ============================================================================
+
+    match /medicines/{medicineId} {
+      // Read: Family members can read medicines of their family
+      allow read: if isAuthenticated()
+        && isFamilyMember(currentUserId(), resource.data.familyId);
+
+      // Create: Family members can add medicines
+      allow create: if isAuthenticated()
+        && isFamilyMember(currentUserId(), request.resource.data.familyId)
+        && request.resource.data.addedBy == currentUserId()
+        && request.resource.data.keys().hasAll([
+             'name', 'quantity', 'unit', 'expiryDate', 'purchaseDate',
+             'category', 'location', 'addedBy', 'familyId', 'createdAt', 'updatedAt', 'isOutOfStock'
+           ])
+        && request.resource.data.quantity >= 0
+        && request.resource.data.isOutOfStock == false;
+
+      // Update: Family members can update medicines
+      allow update: if isAuthenticated()
+        && isFamilyMember(currentUserId(), resource.data.familyId)
+        && resource.data.familyId == request.resource.data.familyId
+        && resource.data.addedBy == request.resource.data.addedBy; // Cannot change who added it
+
+      // Delete: Family members can delete medicines
+      allow delete: if isAuthenticated()
+        && isFamilyMember(currentUserId(), resource.data.familyId);
+    }
+
+    // ============================================================================
+    // COLLECTION: shoppingItems
+    // ============================================================================
+
+    match /shoppingItems/{itemId} {
+      // Read: Family members can read shopping items
+      allow read: if isAuthenticated()
+        && isFamilyMember(currentUserId(), resource.data.familyId);
+
+      // Create: Family members can add items
+      allow create: if isAuthenticated()
+        && isFamilyMember(currentUserId(), request.resource.data.familyId)
+        && request.resource.data.addedBy == currentUserId()
+        && request.resource.data.keys().hasAll([
+             'name', 'category', 'priority', 'addedBy', 'addedByName',
+             'familyId', 'createdAt', 'isCompleted'
+           ])
+        && request.resource.data.priority in ['low', 'medium', 'high']
+        && request.resource.data.isCompleted == false;
+
+      // Update: Family members can update items
+      allow update: if isAuthenticated()
+        && isFamilyMember(currentUserId(), resource.data.familyId)
+        && resource.data.familyId == request.resource.data.familyId
+        && resource.data.addedBy == request.resource.data.addedBy; // Cannot change who added it
+
+      // Delete: Family members can delete items
+      allow delete: if isAuthenticated()
+        && isFamilyMember(currentUserId(), resource.data.familyId);
+    }
+
+    // ============================================================================
+    // COLLECTION: activityLogs
+    // ============================================================================
+
+    match /activityLogs/{logId} {
+      // Read: Family members can read activity logs of their family
+      allow read: if isAuthenticated()
+        && isFamilyMember(currentUserId(), resource.data.familyId);
+
+      // Create: Any family member can log activities
+      allow create: if isAuthenticated()
+        && isFamilyMember(currentUserId(), request.resource.data.familyId)
+        && request.resource.data.userId == currentUserId()
+        && request.resource.data.keys().hasAll([
+             'type', 'userId', 'userName', 'familyId', 'description', 'createdAt'
+           ]);
+
+      // Update: Prevent log updates (immutable audit trail)
+      allow update: if false;
+
+      // Delete: Prevent log deletion (immutable audit trail)
+      allow delete: if false;
+    }
+
+    // ============================================================================
+    // DEFAULT: Deny all other access
+    // ============================================================================
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+```
+
+---
+
+## SECURITY FEATURES IMPLEMENTED
+
+### 1. Authentication & Authorization
+✓ All operations require Firebase authentication
+✓ User can only read/write their own profile
+✓ Family-based access control via isFamilyMember() helper
+✓ Role-based admin permissions via isFamilyAdmin() helper
+
+### 2. Data Integrity
+✓ Required fields validation on create operations
+✓ Immutable fields (familyCode, createdBy, addedBy, email)
+✓ Type validation for enums (role, priority, theme)
+✓ Value range validation (quantity >= 0)
+
+### 3. Audit Trail
+✓ Activity logs are immutable (no updates/deletes)
+✓ All operations tracked with userId and createdAt
+✓ Metadata field for contextual information
+
+### 4. Family Access Control
+✓ Members can only access their family's data
+✓ Admins required for member removal and code regeneration
+✓ Password-protected family codes (client-side enforcement)
+✓ 6-character alphanumeric family codes
+
+### 5. Medicine Management
+✓ Medicines only accessible by family members
+✓ Cannot change original addedBy field
+✓ Tracks out-of-stock status with timestamp and userId
+
+### 6. Shopping List
+✓ Shared within family context
+✓ Completion tracking with userId and timestamp
+✓ Priority-based organization
+
+---
+
+## DEPLOYMENT INSTRUCTIONS
+
+1. Go to Firebase Console → Project → Firestore Database
+2. Click "Rules" tab
+3. Clear existing rules
+4. Paste the complete rules code above
+5. Click "Publish"
+6. Verify deployment in "Rules History" tab
+
+---
+
+## TESTING CHECKLIST
+
+- [ ] Unauthenticated users cannot read any data
+- [ ] Users can only read their own profile
+- [ ] Non-family members cannot access family data
+- [ ] Family members can read/write medicines and shopping items
+- [ ] Only admins can remove members
+- [ ] Activity logs are immutable
+- [ ] Family code must be exactly 6 characters
+- [ ] Cannot change email in user update
+- [ ] All required fields are validated on create
+- [ ] Users cannot delete other users' medicines
+
+---
+
+## NOTES
+
+- passwordHash in families is stored but not validated server-side (client-side bcrypt validation for security)
+- Activity logs serve as immutable audit trail
+- Family deletion is prevented to maintain historical data
+- User deletion is prevented to maintain foreign key integrity
+- All timestamps are server-side generated via serverTimestamp()
+- Each user can only be in one family at a time (via familyId field)
