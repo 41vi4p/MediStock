@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
 import { useAuth } from '@/contexts/AuthContext';
 import { useThemeColors } from '@/contexts/ThemeContext';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function SignInScreen() {
   const { signInWithEmail, signInWithGoogle } = useAuth();
@@ -37,6 +38,7 @@ export default function SignInScreen() {
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign In</Text>}
         </TouchableOpacity>
         <TouchableOpacity style={[styles.googleButton, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => signInWithGoogle()}>
+          <Ionicons name="logo-google" size={18} color="#ea4335" />
           <Text style={[styles.googleButtonText, { color: colors.text }]}>Sign in with Google</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push('/auth/signup')}>
@@ -56,7 +58,7 @@ const styles = StyleSheet.create({
   input: { borderWidth: 1, borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 16 },
   button: { borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  googleButton: { borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16, borderWidth: 1 },
+  googleButton: { borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16, borderWidth: 1, flexDirection: 'row', justifyContent: 'center', gap: 10 },
   googleButtonText: { fontSize: 16, fontWeight: '600' },
   link: { textAlign: 'center', fontSize: 14 },
 });

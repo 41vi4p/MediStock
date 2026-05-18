@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamily } from '@/contexts/FamilyContext';
 import { useThemeColors, useTheme } from '@/contexts/ThemeContext';
@@ -11,13 +11,9 @@ export default function SettingsScreen() {
   const { family } = useFamily();
   const colors = useThemeColors();
   const { mode, isDark, setMode } = useTheme();
+  const [showSignOutModal, setShowSignOutModal] = useState(false);
 
-  const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: async () => { await signOut(); router.replace('/auth/signin'); } },
-    ]);
-  };
+  const handleSignOut = () => setShowSignOutModal(true);
 
   if (!user) {
     return (
@@ -93,6 +89,25 @@ export default function SettingsScreen() {
       </TouchableOpacity>
 
       <Text style={[styles.version, { color: colors.textMuted }]}>MediStock v2.2.0 (Expo)</Text>
+
+      {/* Sign Out Confirmation Modal */}
+      <Modal visible={showSignOutModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
+            <Ionicons name="log-out-outline" size={32} color={colors.danger} />
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Sign Out</Text>
+            <Text style={[styles.modalMsg, { color: colors.textSecondary }]}>Are you sure you want to sign out?</Text>
+            <View style={styles.modalBtns}>
+              <TouchableOpacity style={[styles.modalBtn, { backgroundColor: colors.background, borderColor: colors.border, borderWidth: 1 }]} onPress={() => setShowSignOutModal(false)}>
+                <Text style={{ color: colors.text, fontWeight: '600' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalBtn, { backgroundColor: colors.danger }]} onPress={() => { setShowSignOutModal(false); signOut(); }}>
+                <Text style={{ color: '#fff', fontWeight: '600' }}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -116,4 +131,10 @@ const styles = StyleSheet.create({
   version: { textAlign: 'center', fontSize: 12, marginTop: 24 },
   themeRow: { flexDirection: 'row', gap: 8 },
   themeBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 8, borderWidth: 1 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modalBox: { borderRadius: 20, padding: 28, alignItems: 'center', width: '100%', maxWidth: 320 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginTop: 12 },
+  modalMsg: { fontSize: 14, textAlign: 'center', marginTop: 8 },
+  modalBtns: { flexDirection: 'row', gap: 12, marginTop: 24, width: '100%' },
+  modalBtn: { flex: 1, borderRadius: 10, padding: 14, alignItems: 'center' },
 });
