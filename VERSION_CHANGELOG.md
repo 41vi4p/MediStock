@@ -1,5 +1,27 @@
 # 📋 Version Changelog
 
+## v2.2.0 - UI Polish & About Page (2026-05-18)
+
+### ✨ New Features
+- **About Page** with project info, team credits, and social links
+- **Theme Toggle** — switch between Light, Dark, and System modes (persisted)
+- **Improved Add Medicine UI** — grouped card sections with icons and bottom-sheet pickers
+- **Real-time user sync** — AuthContext now listens to user doc changes via onSnapshot
+- **Google Sign-In** via Firebase Auth (signInWithPopup)
+
+### 🎨 UI Improvements
+- Full dark/light theme support across all screens
+- Modern bottom tab bar with outlined/filled icon states
+- Auth-gated routing with automatic redirects
+- Status bar adapts to theme
+
+### 👥 Team
+- David Porathur
+- Ayush Ghara
+- Swar Churi
+
+---
+
 ## v2.0.0 - Expo Migration (2026-05-18)
 
 ### 🚀 Major Changes

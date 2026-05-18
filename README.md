@@ -1,6 +1,6 @@
 # 💊 MediStock - Mobile App
 
-**Version 2.0.0** - A comprehensive mobile application for managing home medicine inventory with expiry tracking, family sharing, and intelligent notifications. Built with Expo, React Native, TypeScript, and Firebase.
+**Version 2.2.0** - A comprehensive mobile application for managing home medicine inventory with expiry tracking, family sharing, and intelligent notifications. Built with Expo, React Native, TypeScript, and Firebase.
 
 ## ✨ Features
 

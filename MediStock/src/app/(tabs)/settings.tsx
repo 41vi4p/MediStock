@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, useColorScheme } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamily } from '@/contexts/FamilyContext';
 import { useThemeColors, useTheme } from '@/contexts/ThemeContext';
@@ -80,6 +80,11 @@ export default function SettingsScreen() {
           <Text style={[styles.menuText, { color: colors.text }]}>Activity Logs</Text>
           <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
         </TouchableOpacity>
+        <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]} onPress={() => router.push('/medicines/about')}>
+          <Ionicons name="information-circle-outline" size={20} color={colors.success} />
+          <Text style={[styles.menuText, { color: colors.text }]}>About</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={[styles.signOutBtn, { backgroundColor: colors.dangerLight, borderColor: colors.danger + '40' }]} onPress={handleSignOut}>
@@ -87,7 +92,7 @@ export default function SettingsScreen() {
         <Text style={{ color: colors.danger, fontSize: 16, fontWeight: '600' }}>Sign Out</Text>
       </TouchableOpacity>
 
-      <Text style={[styles.version, { color: colors.textMuted }]}>MediStock v2.0.0 (Expo)</Text>
+      <Text style={[styles.version, { color: colors.textMuted }]}>MediStock v2.2.0 (Expo)</Text>
     </ScrollView>
   );
 }
