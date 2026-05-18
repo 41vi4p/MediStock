@@ -32,7 +32,7 @@
     "expo-symbols": "~55.0.8",
     "expo-system-ui": "~55.0.18",
     "expo-web-browser": "~55.0.16",
-    "firebase": "^10.14.1",
+    "firebase": "^12.13.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-native": "0.83.6",
